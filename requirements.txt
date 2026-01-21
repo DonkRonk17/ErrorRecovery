@@ -1,0 +1,20 @@
+# ErrorRecovery - Requirements
+# 
+# This tool uses ZERO external dependencies!
+# All functionality is built using Python standard library only.
+#
+# Minimum Python version: 3.8+
+#
+# Standard library modules used:
+# - argparse: CLI argument parsing
+# - json: Data serialization
+# - hashlib: Error signature generation
+# - re: Pattern matching
+# - time: Retry delays
+# - dataclasses: Data structures
+# - datetime: Timestamps
+# - enum: Strategy enumerations
+# - pathlib: Cross-platform paths
+# - typing: Type hints
+
+# No external dependencies required!

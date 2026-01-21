@@ -1,0 +1,330 @@
+================================================================================
+                       ERRORRECOVERY CHEAT SHEET
+                  Intelligent Error Detection & Recovery
+================================================================================
+
+QUICK START
+-----------
+# Install (editable mode)
+pip install -e .
+
+# Verify installation
+python -c "from errorrecovery import ErrorRecovery; print('Ready!')"
+
+# Basic usage
+errorrecovery --help
+
+================================================================================
+PYTHON API - DECORATOR PATTERN
+================================================================================
+
+# Import
+from errorrecovery import ErrorRecovery
+
+# Create instance
+recovery = ErrorRecovery()
+
+# Basic decorator
+@recovery.wrap
+def my_function():
+    pass
+
+# With fallback
+@recovery.wrap(fallback=alternative_func)
+def my_function():
+    pass
+
+# With failure callback
+@recovery.wrap(on_failure=handle_failure)
+def my_function():
+    pass
+
+# Combined
+@recovery.wrap(fallback=alt_func, on_failure=handle_failure)
+def my_function():
+    pass
+
+================================================================================
+PYTHON API - FUNCTION PATTERN
+================================================================================
+
+# Import
+from errorrecovery import recover, identify, stats, report
+
+# Execute with recovery
+success, result = recover(my_function, arg1, arg2, kwarg1=value)
+
+# Check result
+if success:
+    print(f"Result: {result}")
+else:
+    print(f"Failed: {result}")
+
+# Identify error
+pattern, error_text = identify(exception)
+if pattern:
+    print(f"Pattern: {pattern.name}")
+    print(f"Strategy: {pattern.default_strategy}")
+
+# Get statistics
+statistics = stats()
+print(f"Success rate: {statistics['success_rate']:.1%}")
+
+# Generate report
+print(report())  # or report("output.txt") to save
+
+================================================================================
+RECOVERY STRATEGIES
+================================================================================
+
+from errorrecovery import RecoveryStrategy
+
+RecoveryStrategy.RETRY           # Retry with same params
+RecoveryStrategy.RETRY_MODIFIED  # Retry with adjusted params
+RecoveryStrategy.FALLBACK        # Use fallback function
+RecoveryStrategy.SKIP            # Skip and continue
+RecoveryStrategy.ESCALATE        # Stop and alert human
+RecoveryStrategy.ABORT           # Stop immediately
+
+================================================================================
+MANUAL EXECUTION
+================================================================================
+
+success, result, attempt = recovery.execute_recovery(
+    my_function,
+    arg1, arg2,
+    strategy=RecoveryStrategy.RETRY,
+    fallback_func=backup_function,
+    modifications={'timeout': 60},
+    kwarg1=value
+)
+
+print(f"Success: {success}")
+print(f"Retries: {attempt.retry_count}")
+print(f"Duration: {attempt.duration_ms}ms")
+
+================================================================================
+CUSTOM PATTERNS
+================================================================================
+
+# Add pattern
+recovery.add_pattern(
+    pattern_id="my_error",
+    name="My Custom Error",
+    regex=r"my.*error.*pattern",
+    message_contains=["my error", "custom fail"],
+    error_types=["MyException"],
+    severity="medium",      # low, medium, high, critical
+    default_strategy="retry",
+    description="Description of error",
+    recovery_hints=["Hint 1", "Hint 2"]
+)
+
+# Remove pattern
+recovery.remove_pattern("my_error")
+
+# Get pattern
+pattern = recovery.get_pattern("timeout")
+
+# List all patterns
+patterns = recovery.list_patterns()
+
+================================================================================
+BUILT-IN PATTERNS
+================================================================================
+
+Pattern ID           | Matches                    | Strategy
+---------------------|----------------------------|---------------
+connection_refused   | Connection refused errors  | retry
+timeout              | Operation timeouts         | retry_modified
+file_not_found       | Missing files              | fallback
+permission_denied    | Access denied              | escalate
+memory_error         | Out of memory              | retry_modified
+rate_limit           | API rate limits            | retry
+json_decode          | JSON parse errors          | skip
+network_unreachable  | Network issues             | retry
+disk_full            | No disk space              | escalate
+auth_error           | Authentication failures    | escalate
+import_error         | Missing modules            | fallback
+syntax_error         | Code syntax errors         | abort
+
+================================================================================
+CONFIGURATION
+================================================================================
+
+recovery = ErrorRecovery(
+    data_dir="~/.myapp/recovery",  # Custom data directory
+    max_retries=5,                  # Max retry attempts (default: 3)
+    initial_delay=2.0,              # Initial delay secs (default: 1.0)
+    max_delay=120.0,                # Max delay secs (default: 60.0)
+    backoff_factor=2.5,             # Backoff multiplier (default: 2.0)
+    auto_learn=True                 # Learn from success (default: True)
+)
+
+================================================================================
+CLI COMMANDS
+================================================================================
+
+# Identify error
+errorrecovery identify "ConnectionRefusedError: Connection refused"
+
+# List patterns
+errorrecovery patterns
+errorrecovery patterns --json
+
+# Show statistics
+errorrecovery stats
+errorrecovery stats --json
+
+# Generate report
+errorrecovery report
+errorrecovery report -o report.txt
+
+# View history
+errorrecovery history
+errorrecovery history --recent 20
+errorrecovery history --clear
+errorrecovery history --clear --older-than 30
+
+# Manage patterns
+errorrecovery add-pattern myerr "My Error" --regex "my.*err" --strategy retry
+errorrecovery remove-pattern myerr
+
+================================================================================
+STATISTICS
+================================================================================
+
+stats = recovery.get_statistics()
+
+# Available fields:
+stats['total_attempts']        # Total recovery attempts
+stats['successful_recoveries'] # Successful count
+stats['failed_recoveries']     # Failed count
+stats['success_rate']          # Float 0.0-1.0
+stats['learnings_count']       # Number of learnings
+stats['patterns']              # Per-pattern stats
+stats['strategies']            # Per-strategy stats
+
+================================================================================
+HISTORY
+================================================================================
+
+# Access history
+recovery.history  # List of RecoveryAttempt objects
+
+# Clear history
+recovery.clear_history()                    # Clear all
+recovery.clear_history(older_than_days=30)  # Clear old
+
+================================================================================
+TEAM BRAIN INTEGRATION
+================================================================================
+
+# With SynapseLink
+from synapselink import quick_send
+
+def on_failure(error):
+    quick_send("FORGE", "Recovery Failed", str(error), priority="HIGH")
+
+@recovery.wrap(on_failure=on_failure)
+def my_function():
+    pass
+
+# With AgentHealth
+from agenthealth import AgentHealth
+health = AgentHealth()
+
+@recovery.wrap
+def agent_task():
+    health.heartbeat("ATLAS", status="working")
+    # ... work ...
+
+# With SessionReplay
+from sessionreplay import SessionReplay
+replay = SessionReplay()
+
+session_id = replay.start_session("ATLAS", task="Processing")
+# Use @recovery.wrap on operations
+# Log errors to replay.log_error()
+
+================================================================================
+DATA FILES
+================================================================================
+
+~/.errorrecovery/
+├── patterns.json    # Custom patterns
+├── learnings.json   # What worked
+└── history.json     # Recovery attempts
+
+================================================================================
+COMMON PATTERNS
+================================================================================
+
+# Network operations
+@recovery.wrap
+def fetch_api():
+    pass  # Auto-retry on connection/timeout errors
+
+# File operations with fallback
+@recovery.wrap(fallback=use_default_config)
+def load_config():
+    pass  # Falls back if file not found
+
+# Critical operations with alerts
+@recovery.wrap(on_failure=alert_admin)
+def critical_task():
+    pass  # Alerts if recovery fails
+
+# Batch processing (skip errors)
+for item in items:
+    success, result = recover(process_item, item)
+    if not success:
+        continue  # Skip failed items
+
+================================================================================
+DEBUGGING
+================================================================================
+
+# Check if error matches a pattern
+pattern, text = identify(my_error)
+print(f"Pattern: {pattern}")
+
+# View recent recovery attempts
+errorrecovery history --recent 10
+
+# Check learnings
+print(recovery.learnings)
+
+# Generate detailed report
+print(recovery.export_report())
+
+================================================================================
+QUICK REFERENCE
+================================================================================
+
+Task                    | Code
+------------------------|------------------------------------------
+Wrap function           | @recovery.wrap
+Wrap with fallback      | @recovery.wrap(fallback=alt_func)
+Execute with recovery   | success, result = recover(func, args)
+Identify error          | pattern, text = identify(error)
+Get statistics          | stats = stats()
+Generate report         | report() or report("file.txt")
+Add pattern             | recovery.add_pattern(...)
+Remove pattern          | recovery.remove_pattern(id)
+
+================================================================================
+RESOURCES
+================================================================================
+
+Documentation:   README.md
+Examples:        EXAMPLES.md
+Integration:     INTEGRATION_PLAN.md
+Quick Starts:    QUICK_START_GUIDES.md
+GitHub:          https://github.com/DonkRonk17/ErrorRecovery
+Issues:          https://github.com/DonkRonk17/ErrorRecovery/issues
+
+================================================================================
+                   ErrorRecovery v1.0 - Team Brain Q-Mode Tool
+                           Built by Forge @ Team Brain
+================================================================================
