@@ -1,3 +1,5 @@
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/aed4fecf-ad76-4949-b0c8-078f64020e30" />
+
 # 🔄 ErrorRecovery
 
 **Intelligent Error Detection and Recovery System for AI Agents**
@@ -607,6 +609,9 @@ python test_errorrecovery.py
 MIT License - see [LICENSE](LICENSE) for details.
 
 ---
+
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/03018d68-2bcf-44b3-af25-177c951abd3f" />
+
 
 ## 🙏 Credits
 
